@@ -25,7 +25,18 @@ class Task(ABC):
         self.stop_words = stop_words
         self.requires_execution = requires_execution
         try:
-            self.dataset = load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)
+            dataset_kwargs = {}
+            if "humaneval" in self.DATASET_PATH:
+                dataset_kwargs['data_files'] = {
+                        'test': "/workspace/openai_humaneval/0.0.0/7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544/openai_humaneval-test.arrow"
+                        }
+            elif "mbpp" in self.DATASET_PATH:
+                dataset_kwargs['data_files'] = {
+                        'train': "/workspace/mbpp/full/0.0.0/4bb6404fdc6cacfda99d4ac4205087b89d32030c/mbpp-train.arrow",
+                        'test': "/workspace/mbpp/full/0.0.0/4bb6404fdc6cacfda99d4ac4205087b89d32030c/mbpp-test.arrow",
+                        'validation': "/workspace/mbpp/full/0.0.0/4bb6404fdc6cacfda99d4ac4205087b89d32030c/mbpp-validation.arrow"
+                        }
+            self.dataset = load_dataset("arrow", **dataset_kwargs if dataset_kwargs is not None else {})
         except Exception as e:
             warn(
                 f"Loading the dataset failed with {str(e)}. This task will use a locally downloaded dataset, not from the HF hub. \
